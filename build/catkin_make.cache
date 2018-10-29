@@ -1,0 +1,2 @@
+a3_p2
+-DCATKIN_DEVEL_PREFIX=/home/parallels/assignment_2/devel -DCMAKE_INSTALL_PREFIX=/home/parallels/assignment_2/install -G Unix Makefiles

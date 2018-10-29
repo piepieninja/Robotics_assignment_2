@@ -1,0 +1,8 @@
+prefix=/home/parallels/assignment_2/install
+
+Name: a3_world
+Description: Description of a3_world
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/parallels/assignment_2/install/lib 
+Requires: 
