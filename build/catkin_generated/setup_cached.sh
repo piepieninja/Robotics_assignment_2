@@ -8,3 +8,4 @@
 
 # modified environment variables
 export PWD="/home/parallels/assignment_2/build"
+export PYTHONPATH="/home/parallels/assignment_2/devel/lib/python2.7/dist-packages:$PYTHONPATH"
