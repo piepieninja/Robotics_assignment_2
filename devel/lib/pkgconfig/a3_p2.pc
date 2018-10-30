@@ -2,7 +2,7 @@ prefix=/home/parallels/assignment_2/devel
 
 Name: a3_p2
 Description: Description of a3_p2
-Version: 0.0.0
-Cflags: 
+Version: 0.6.9
+Cflags: -I/home/parallels/assignment_2/devel/include
 Libs: -L/home/parallels/assignment_2/devel/lib 
-Requires: 
+Requires: message_runtime
