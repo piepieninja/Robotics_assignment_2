@@ -55,6 +55,7 @@ def extremaSortKey(elem):
 
 def callback(scan):    
     # no thought was given to the effecency of this function
+    # I would do this recusivley if I was really trying to make it well, instead I'm trying to make it fast
     # initial setup of situation
     delta_phi = scan.angle_increment
     min_phi   = scan.angle_min
@@ -124,7 +125,11 @@ if __name__ == '__main__':
     
     # Initialize this node.
     rospy.init_node('extract_all_lines')
-    
+
+    # ros things???
+    rospy.set_param('maximum_range', '10')
+
+    # rossssy
     maximum_range = rospy.get_param('maximum_range')
     min_points_per_line = rospy.get_param('min_points_per_line')
     orthog_distance_threshold = rospy.get_param('orthog_distance_threshold')
