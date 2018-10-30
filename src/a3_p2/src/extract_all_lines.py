@@ -26,7 +26,27 @@ def euclid_dist(p0, p1):
 def line_distance(p0, p1, p2):
     return (math.abs((p1[1] - p0[1])*p2[0] - (p1[0] - p0[0])*p2[1] + p1[0]*p0[1] - p1[1]*p0[0])/math.sqrt((p1[1] - p0[1])**2 + (p1[0] - p0[0])**2))
 
+def split_for_extrema(scan, start, end, p0, p1):
+    # get segmented start / stop locations
+    delta_phi = scan.angle_increment
+    min_phi   = scan.angle_min + (start * delta_phi) 
+    max_phi   = scan.angle_max - (end * delta_phi)
 
+    phi = min_phi
+    local_extrema = [(0.0,0.0),(0.0,0.0),-1.0,0] # includes location and max distance value -1
+    for i in range(start, end):
+        r = scan.ranges[i]
+        point = to_cartesian(r,phi)
+        d = line_distance(p0,p1,point)
+        if d > local_extrema[2]:
+            local_extrema[0] = point
+            local_extrema[1] = (r,phi)
+            local_extrema[2] = d
+            local_extrema[3] = i
+        phi += delta_phi
+
+    return local_extrema
+    
 def callback(scan):    
     # no thought was given to the effecency of this function
     # initial setup of situation
@@ -62,9 +82,12 @@ def callback(scan):
     print "Extrema:"
     print extrema
 
-    # just as an example, recurse here
+    
     lines = ExtractedLines()
     lines.header.frame_id = scan.header.frame_id
+    # find local extrema to split with
+    new_extrema = split_for_extrema(scan, extrema[0][3], extrema[1][3], points[extrema[0][3]], points[extrema[1][3]]):
+    print new_extrema
     line = fit_line(scan,extrema[0][3], extrema[1][3], maximum_range)
     lines.lines.append(line)
     extracted_publisher.publish(lines)
