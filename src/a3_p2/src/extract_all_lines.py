@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """
 ROS node which subscribes to the /scan topic and fits a single line to
 this scan, publishing it on the /extracted_lines topic.
@@ -38,7 +37,7 @@ def split_for_extrema(scan, start, end, p0, p1):
         r = scan.ranges[i]
         if math.isnan(r):
             r = 10.0
-            print "found NaN"
+            #print "found NaN"
         point = to_cartesian(r,phi)
         d = line_distance(p0,p1,point)
         if d > local_extrema[2]:
@@ -49,7 +48,11 @@ def split_for_extrema(scan, start, end, p0, p1):
         phi += delta_phi
 
     return local_extrema
-    
+
+# helper function for sorting extrema by index
+def extremaSortKey(elem):
+        return elem[3]
+
 def callback(scan):    
     # no thought was given to the effecency of this function
     # initial setup of situation
@@ -72,7 +75,7 @@ def callback(scan):
     for r in scan.ranges:
         if math.isnan(r):
             r = 10.0
-            print "NaN found..."
+            #print "NaN found..."
         point = to_cartesian(r, phi)
         point_list.append([point, (r, phi)])
         d = euclid_dist((0,0),point)
@@ -85,37 +88,37 @@ def callback(scan):
         index += 1
         phi += delta_phi
 
-    print "Extrema:"
-    print extrema
-    
     lines = ExtractedLines()
     lines.header.frame_id = scan.header.frame_id
-    # find local extrema to split with
+
+    # intialize the system
     new_extrema = split_for_extrema(scan, extrema[0][3], extrema[1][3], extrema[0][0], extrema[1][0])
-    print new_extrema
-    #line = fit_line(scan,extrema[0][3], new_extrema[3], maximum_range)
-    line = fit_line(scan,extrema[0][3], 76, maximum_range)
-    lineasdf = fit_line(scan,new_extrema[3], extrema[1][3], maximum_range)
+    extrema.append(new_extrema)
+    looper = True
+    lgi = 0 # lowest good index
+    while looper:
+        extrema.sort(key=extremaSortKey)
+        looper = False # need to prove we must continue
+        for x in range(lgi,len(extrema)-1):
+            new_extrema = split_for_extrema(scan, extrema[x][3], extrema[x+1][3], extrema[x][0], extrema[x+1][0])
+            d = new_extrema[2]
+            point_num = abs(extrema[x+1][3] - new_extrema[3]) + abs(extrema[x][3] - new_extrema[3])
+            if d > orthog_distance_threshold and point_num > 2* min_points_per_line:
+                extrema.append(new_extrema)
+                looper = True
+                lgi = new_extrema[3]
 
-    #lines.lines.append(line)
-    #lines.lines.append(lineasdf)
-
-    # just testing
-    x = 0
-    while x < 76:
-        line = fit_line(scan,x, x+4, maximum_range)
+    for x in range(0, len(extrema)-1):
+        line = fit_line(scan, extrema[x][3], extrema[x+1][3], maximum_range)
         if line is not None:
-            lines.lines.append(line)
-        x += 10
+            lines.lines.append(line)                        
 
-    print len(lines.lines)
-        
-    #if line2 is not None:
-    #    lines.lines.append(line2)
-    #else:
-    #    print "rip"
+    if debug:
+        print "found: " + str(len(extrema)) + " extrema"
+        print "found: " + str(len(lines.lines)) + " lines from valid extrema"
+
     extracted_publisher.publish(lines)
-        
+    
 if __name__ == '__main__':
     global maximum_range, extracted_publisher, min_points_per_line, orthog_distance_threshold
     
